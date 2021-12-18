@@ -1,0 +1,48 @@
+Kubectl Commands frequently used ::
+
+kubectl get componentstatuses -o wide
+
+kubectl create deployment <app-label-name> --image=<image-name>
+kubectl expose deployment <app-label-name> --type=<> --port=8080
+kubectl patch svc <svc-name> -p '{"spec": {"type": "LoadBalancer", "externalIPs":["172.16.2.28"]}}'
+kubectl scale deployment  <app-label-name> --replicas=2
+kubectl get pods -A
+
+kubectl get pods -o wide
+kubectl get deployemtn -o wide
+kubectl get services -o wide
+kubectl get replicaset -o wide
+kubectl get endpoints -o wide
+
+kubectl logs -f <podname> -n <namespace>
+
+kubectl describe pod <name>
+kubectl describe deployemnt <name>
+kubectl describe services <name>
+kubectl describe endpoints <name>
+
+kubectl get event
+
+kubectl delete pod <name>
+kubectl delete deployemnt <name>
+kubectl delete services <name>
+kubectl delete endpoints <name> 
+
+kubectl delete all -l app=<name>
+
+kubectl get deployment <app-label-name> -o yaml
+kubectl get services <app-label-name> -o yaml
+
+kubectl apply -f <app-dep-name>.yaml
+kubectl diff -f <app-dep-name>.yaml
+kubectl autoscale deployment <name> --min=1 --max=3 --cpu-percent=<mentionthenumber>
+
+kubectl top pod
+kubectl top nodes
+
+kubectl get hpa
+kubectl delete hpa <name>
+
+kubectl get svc hello-world-rest-api -o yaml | grep nodePort -C 5
+
+kubectl delete -n kube-system deployments.apps metrics-server

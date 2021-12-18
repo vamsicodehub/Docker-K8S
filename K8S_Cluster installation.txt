@@ -1,0 +1,121 @@
+Kubernetes Installation Steps ::
+--------------------------------
+
+Reference URL:: https://phoenixnap.com/kb/how-to-install-kubernetes-on-centos
+
+
+Step -1 ::
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+Step -2 ::
+
+sudo yum install -y kubelet kubeadm kubectl
+systemctl enable kubelet
+systemctl start kubelet
+
+Step -3 ::
+
+sudo hostnamectl set-hostname master-node
+sudo hostnamectl set-hostname worker-node1
+
+sudo vi /etc/hosts
+192.168.1.10 master.phoenixnap.com master-node
+192.168.1.20 node1. phoenixnap.com node1 worker-node
+
+Step -4 ::
+
+On the Master Node enter:
+
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10252/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+sudo firewall-cmd --reload
+
+Enter the following commands on each worker node:
+
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+
+Step -5 ::
+
+cat <<EOF > /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+
+Step -6 ::
+
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+Step -7 ::
+
+sudo sed -i '/swap/d' /etc/fstab
+sudo swapoff -a
+
+
+
+setting up k8s cluster ::
+-------------------------
+
+Main Step without the below daemon.json config, Kubelet fails to start ::
+
+checkfor dir /etc/docker
+cd /etc/docker
+
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+for ref :: https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
+
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+
+At Worker-Node1 ::
+
+kubeadm join 172.16.2.27:6443 --token zuapy5.vfwqtu4o1lpbc5w5 \
+        --discovery-token-ca-cert-hash sha256:3ed965e3b527e4299a819955a98f269b9ac2fd8d3cae0ee0fbb36624571bc46f
+		
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+sudo kubectl get nodes
+
+sudo kubectl get pods --all-namespaces
+
+		
+-------------------------------------------------------------------------------------------
+
+For External-IP generation ::
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.3/manifests/metallb.yaml
+kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"

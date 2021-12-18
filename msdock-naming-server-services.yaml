@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: msu-service-registry
+  name: msu-service-registry
+  namespace: default
+spec:
+  ports:
+  - port: 8761
+    protocol: TCP
+    targetPort: 8761
+  selector:
+    app: msu-service-registry
+  sessionAffinity: None
+  type: ClusterIP

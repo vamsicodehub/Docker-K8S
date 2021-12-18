@@ -1,0 +1,19 @@
+-- Current Commands ::
+
+kubectl scale deployment  msu-service-registry --replicas=2
+kubectl autoscale deployment hello-world-rest-api --min=1 --max=4 --cpu-percent=40
+kubectl create deployment hello-world-rest-api  --image=in28min/hello-world-rest-api:0.0.1.RELEASE
+kubectl create deployment msu-service-registry --image=vamsicodehub/msu-service-registry:0.0.1-SNAPSHOT
+kubectl expose deployment msu-service-registry --type=LoadBalancer --port=8761
+
+kubectl patch svc msu-service-registry  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["172.16.2.28"]}}'
+
+kubectl get services msu-service-registry -o yaml
+
+For HPA to work needs to modify deployment.yaml with the resources section mention memory cpu and requests cpu
+
+
+
+InternalIP,ExternalIP,Hostname
+kubectl edit deployments.apps -n kube-system metrics-server
+kubectl delete -n kube-system deployments.apps metrics-server

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  generation: 1
+  labels:
+    app: msu-service-registry
+  name: msu-service-registry
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msu-service-registry
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: msu-service-registry
+    spec:
+      containers:
+      - image: vamsicodehub/msu-service-registry:0.0.1-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        name: msu-service-registry
+      restartPolicy: Always
